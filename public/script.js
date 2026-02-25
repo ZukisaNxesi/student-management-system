@@ -1,46 +1,48 @@
-const form = document.getElementById("studentForm");
-const list = document.getElementById("studentList");
+// Handle Signup
+const signupForm = document.getElementById('signupForm');
+if(signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-const API = "http://localhost:5000/api/students";
+        const res = await fetch('/api/students/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const student = {
-        name: document.getElementById("name").value,
-        studentId: document.getElementById("studentId").value,
-        marks: document.getElementById("marks").value,
-        attendance: document.getElementById("attendance").value
-    };
-
-    await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(student)
-    });
-
-    form.reset();
-    loadStudents();
-});
-
-async function loadStudents() {
-    const res = await fetch(API);
-    const students = await res.json();
-
-    list.innerHTML = "";
-    students.forEach(s => {
-        list.innerHTML += `
-            <li>
-                ${s.name} | ID: ${s.studentId} | Marks: ${s.marks} | Attendance: ${s.attendance}%
-                <button onclick="deleteStudent('${s._id}')">Delete</button>
-            </li>
-        `;
+        const data = await res.json();
+        if(res.ok) {
+            alert('Signup successful! You can now login.');
+            window.location.href = 'login.html';
+        } else {
+            alert(data.error || 'Signup failed');
+        }
     });
 }
 
-async function deleteStudent(id) {
-    await fetch(`${API}/${id}`, { method: "DELETE" });
-    loadStudents();
-}
+// Handle Login
+const loginForm = document.getElementById('loginForm');
+if(loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
 
-loadStudents();
+        const res = await fetch('/api/students/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if(res.ok) {
+            alert('Login successful!');
+            window.location.href = 'index.html'; // Redirect to main system page
+        } else {
+            alert(data.error || 'Login failed');
+        }
+    });
+}
