@@ -1,24 +1,64 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+// models/user.js
+const { createClient } = require('@supabase/supabase-js');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  studentId: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+class User {
+    // Create a new user
+    static async create(userData) {
+        const { name, email, password } = userData;
+        
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-// Method to check password
-userSchema.methods.matchPassword = async function(password) {
-  return await bcrypt.compare(password, this.password);
-};
+        const { data, error } = await supabase
+            .from('users')
+            .insert([
+                {
+                    name,
+                    email,
+                    password: hashedPassword
+                }
+            ])
+            .select();
 
-module.exports = mongoose.model('User', userSchema);
+        if (error) throw error;
+        return data[0];
+    }
+
+    // Find user by email
+    static async findByEmail(email) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    }
+
+    // Find user by ID
+    static async findById(id) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
+
+    // Compare password
+    static async comparePassword(password, hashedPassword) {
+        return await bcrypt.compare(password, hashedPassword);
+    }
+}
+
+module.exports = User;

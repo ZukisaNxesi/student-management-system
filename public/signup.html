@@ -1,42 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Student Management System</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Student Management System</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Left image section -->
-        <div class="image-section">
-            <img src="images/students.jpg" alt="Students">
+  <div class="split-container">
+    <div class="image-side">
+      <div class="image-content">
+        <h1>Welcome to Student Management System</h1>
+        <p>Manage your students, courses, and grades all in one place</p>
+        <div class="features">
+          <div class="feature">
+            <span>📚</span>
+            <p>Track student progress</p>
+          </div>
+          <div class="feature">
+            <span>📊</span>
+            <p>Generate reports</p>
+          </div>
+          <div class="feature">
+            <span>👥</span>
+            <p>Manage classes</p>
+          </div>
         </div>
-
-        <!-- Right signup form section -->
-        <div class="form-section">
-            <h1>Create Account</h1>
-            <p>Sign up to access the system</p>
-            
-            <form id="signupForm">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
-
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-
-                <button type="submit">Sign Up</button>
-            </form>
-
-            <p class="signup-text">
-                Already have an account? <a href="login.html">Login here</a>
-            </p>
-        </div>
+      </div>
     </div>
+    
+    <div class="form-side">
+      <div class="form-container">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join us to start managing your students</p>
+        
+        <form id="signupForm">
+          <div class="input-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="Enter your full name" required>
+          </div>
+          
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+          </div>
+          
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Create a password" required>
+          </div>
+          
+          <div class="input-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+          </div>
+          
+          <div class="terms">
+            <input type="checkbox" id="terms" required>
+            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+          </div>
+          
+          <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+        
+        <div class="login-link">
+          Already have an account? <a href="login.html">Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script src="script.js"></script>
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Basic validation
+      if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters long!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('Account created successfully! Please login.');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.message || 'Signup failed. Please try again.');
+        }
+      } catch (error) {
+        alert('Error connecting to server. Please try again.');
+        console.error('Error:', error);
+      }
+    });
+  </script>
 </body>
 </html>

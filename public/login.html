@@ -1,39 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Student Management System</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Student Management System</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Left image section -->
-        <div class="image-section">
-            <img src="images/students.jpg" alt="Students">
-        </div>
-
-        <!-- Right login form section -->
-        <div class="form-section">
-            <h1>Welcome Back!</h1>
-            <p>Login to your account</p>
-            
-            <form id="loginForm">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-
-                <button type="submit">Login</button>
-            </form>
-
-            <p class="signup-text">
-                Don't have an account? <a href="signup.html">Sign up here</a>
-            </p>
-        </div>
+  <div class="split-container">
+    <div class="image-side">
+      <div class="image-content">
+        <h1>Welcome Back!</h1>
+        <p>Continue managing your students efficiently</p>
+      </div>
     </div>
+    
+    <div class="form-side">
+      <div class="form-container">
+        <h2>Login</h2>
+        <p class="subtitle">Welcome back! Please login to your account</p>
+        
+        <form id="loginForm">
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+          </div>
+          
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+          </div>
+          
+          <button type="submit" class="signup-btn">Login</button>
+        </form>
+        
+        <div class="login-link">
+          Don't have an account? <a href="signup.html">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script src="script.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('Login successful!');
+          window.location.href = 'index.html'; // You'll need to create this
+        } else {
+          alert(data.message || 'Login failed. Please try again.');
+        }
+      } catch (error) {
+        alert('Error connecting to server. Please try again.');
+        console.error('Error:', error);
+      }
+    });
+  </script>
 </body>
 </html>

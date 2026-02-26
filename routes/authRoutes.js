@@ -1,45 +1,100 @@
+// routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
-// Signup
+// Signup route
 router.post('/signup', async (req, res) => {
-  try {
-    const { name, email, password, studentId } = req.body;
+    try {
+        const { name, email, password } = req.body;
 
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: "Email already registered" });
+        // Validation
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required'
+            });
+        }
 
-    user = new User({ name, email, password, studentId });
-    await user.save();
+        // Check if user exists
+        const existingUser = await User.findByEmail(email);
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'User already exists with this email'
+            });
+        }
 
-    res.status(201).json({ msg: "User registered successfully" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Server error" });
-  }
+        // Create user
+        const newUser = await User.create({ name, email, password });
+        
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = newUser;
+
+        res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            user: userWithoutPassword
+        });
+
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error creating user',
+            error: error.message
+        });
+    }
 });
 
-// Login
+// Login route
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
+    try {
+        const { email, password } = req.body;
 
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+        // Validation
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and password are required'
+            });
+        }
 
-    // Create JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        // Find user
+        const user = await User.findByEmail(email);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
 
-    res.json({ token, name: user.name });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: "Server error" });
-  }
+        // Check password
+        const isMatch = await User.comparePassword(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid email or password'
+            });
+        }
+
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json({
+            success: true,
+            message: 'Login successful',
+            user: userWithoutPassword
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
 });
 
 module.exports = router;
