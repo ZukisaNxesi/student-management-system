@@ -43,32 +43,38 @@
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
       
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-
-        const data = await res.json();
+      if (data.success) {
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(data.user));
         
-        if (data.success) {
-          alert('Login successful!');
-          window.location.href = 'index.html'; // You'll need to create this
-        } else {
-          alert(data.message || 'Login failed. Please try again.');
-        }
-      } catch (error) {
-        alert('Error connecting to server. Please try again.');
-        console.error('Error:', error);
+        // IMPORTANT: Redirect to /dashboard (not /dashboard.html)
+        window.location.href = '/dashboard';
+        
+        // OR if you want to go directly to index.html:
+        // window.location.href = '/index.html';
+      } else {
+        alert(data.message || 'Login failed');
       }
-    });
-  </script>
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Error connecting to server');
+    }
+  });
+</script>
 </body>
 </html>
